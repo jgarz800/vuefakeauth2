@@ -1,7 +1,10 @@
 <script setup>
+import { findProp } from "@vue/compiler-core";
 import {ref} from "vue";
 import { useRouter } from "vue-router";
 import useAuth from "../composable/useAuth";
+import useError from "../composable/useError";
+import { useTimeout, promiseTimeout} from '@vueuse/core';
 
 const {isAuthenticated, login} = useAuth();
 
@@ -14,8 +17,16 @@ const logginIn = () => {
     login(username.value, password.value);
     if(isAuthenticated.value){
         router.push("/");
+    } else{
+        setError("Invalid username or password")
+        start();
     }
 }
+
+const {error, setError} = useError();
+
+const { ready, start } = useTimeout(3000, { controls: true }, true)
+
 </script>
 
 <template>
@@ -30,6 +41,9 @@ const logginIn = () => {
             <button type="submit" @submit.prevent="logginIn" class="py-2 text-indigo-200 bg-indigo-600 rounded-lg">Login</button>
         </form>
     </div>
+    <div
+    v-if = "!ready && error" 
+    class="absolute w-1/4 p-4 text-center text-red-800 transition-opacity bg-red-300 rounded-lg bottom-2 right-2">{{ error }}</div>
 </div>
 
 </template>
